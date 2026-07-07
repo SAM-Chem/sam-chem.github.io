@@ -75,7 +75,7 @@
         <p>
           SAM–Chem builds on SAM version 6.10.9 (released February 2016) and adds a
           new chemistry module that is called at every model time step after the
-          microphysics module and before the radiation module (Figure 2 in Yoon et al.,
+          microphysics module and before the radiation module (Figure 1 below; Yoon et al.,
           in prep.). The chemistry module checks for the tropopause height (identified
           as the level with the lowest absolute temperature in the column) and zeros
           all chemical species above it, since the implemented mechanism is not
@@ -98,6 +98,17 @@
           every 180 seconds. Surface and lightning emissions are updated alongside
           other surface fluxes, prior to the chemistry module.
         </p>
+
+        <figure style="margin: 2rem 0; text-align: center;">
+          <img src="images/flowchart.png"
+               alt="SAM–Chem model time-step flowchart showing the sequence of dynamics, surface fluxes, microphysics, chemistry, and radiation, with a zoom into the chemistry module"
+               style="max-width: 100%; border-radius: 6px;">
+          <figcaption style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
+            <strong>Figure 1.</strong> Left: SAM–Chem model time-step sequence. Right: zoom into the
+            chemistry module, showing the KPP integration, dry and wet deposition, and
+            heterogeneous chemistry sub-steps called each time step.
+          </figcaption>
+        </figure>
 
         <!-- ---- GAS-PHASE CHEMISTRY ---- -->
         <h2 id="chemistry">Gas-Phase Chemistry</h2>
