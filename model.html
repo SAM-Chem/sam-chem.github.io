@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Technical description of the SAM-Chem large-eddy simulation: chemistry, emissions, deposition, and model evaluation.">
+  <title>Model Description — SAM–Chem</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="brand" href="index.html">SAM–Chem</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="model.html" class="active">Model</a></li>
+      <li><a href="tutorials.html">Tutorials</a></li>
+      <li><a href="publications.html">Publications &amp; Team</a></li>
+      <li><a href="https://github.com/sam-chem" class="btn-github" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<header class="page-header">
+  <div class="container">
+    <h1>Model Description</h1>
+    <p>
+      SAM–Chem couples the System for Atmospheric Modeling (SAM) dynamical
+      core with a fully interactive chemistry module, including gas-phase and
+      heterogeneous chemistry, photolysis, emissions, and deposition.
+    </p>
+  </div>
+</header>
+
+<!-- ============================================================
+     CONTENT
+     ============================================================ -->
+<div class="content-body">
+  <div class="container">
+    <div class="content-layout">
+
+      <!-- Sidebar TOC -->
+      <aside class="content-sidebar">
+        <h4>On this page</h4>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#chemistry">Gas-Phase Chemistry</a></li>
+          <li><a href="#cloudchem">CloudChem Mechanism</a></li>
+          <li><a href="#photolysis">Photolysis</a></li>
+          <li><a href="#heterogeneous">Heterogeneous Chemistry</a></li>
+          <li><a href="#emissions">Emissions</a></li>
+          <li><a href="#lightning">Lightning NO<sub>x</sub></a></li>
+          <li><a href="#soil">Soil NO<sub>x</sub></a></li>
+          <li><a href="#isoprene">Isoprene</a></li>
+          <li><a href="#dry-dep">Dry Deposition</a></li>
+          <li><a href="#wet-dep">Wet Deposition</a></li>
+          <li><a href="#specs">Model Specifications</a></li>
+          <li><a href="#evaluation">Evaluation</a></li>
+        </ul>
+      </aside>
+
+      <!-- Main content -->
+      <main class="content-main">
+
+        <!-- ---- OVERVIEW ---- -->
+        <h2 id="overview">Overview</h2>
+
+        <p>
+          SAM–Chem builds on SAM version 6.10.9 (released February 2016) and adds a
+          new chemistry module that is called at every model time step after the
+          microphysics module and before the radiation module (Figure 2 in Yoon et al.,
+          in prep.). The chemistry module checks for the tropopause height (identified
+          as the level with the lowest absolute temperature in the column) and zeros
+          all chemical species above it, since the implemented mechanism is not
+          suitable for stratospheric chemistry.
+        </p>
+
+        <p>
+          The current version uses the following physical schemes:
+        </p>
+        <ul>
+          <li><strong>Turbulence:</strong> Smagorinsky-type SGS closure (SGS_TKE)</li>
+          <li><strong>Radiation:</strong> Two-stream RRTM4PBL</li>
+          <li><strong>Advection:</strong> SELPM scheme</li>
+          <li><strong>Microphysics:</strong> Double-moment Morrison et al. (2005) with QuickBeam radar reflectivity submodule</li>
+        </ul>
+
+        <p>
+          SAM–Chem's chemistry and associated submodules are called at every model
+          time step. Wet deposition is called every 60 seconds; lightning emissions
+          every 180 seconds. Surface and lightning emissions are updated alongside
+          other surface fluxes, prior to the chemistry module.
+        </p>
+
+        <!-- ---- GAS-PHASE CHEMISTRY ---- -->
+        <h2 id="chemistry">Gas-Phase Chemistry</h2>
+
+        <p>
+          SAM–Chem is fully KPP-compatible for gas-phase chemistry, compiled using
+          <strong>KPP 3.3.0</strong> (Damian et al., 2002). The solver is an implicit
+          <strong>RODAS-3 Rosenbrock</strong> solver with no mechanism auto-reduction.
+          The solver allows a maximum of 40 integration steps and automatically clips
+          negative concentrations to zero. All chemical species share the same absolute
+          (0.01) and relative (0.005) tolerance.
+        </p>
+
+        <p>
+          Any KPP-compatible mechanism can be compiled into SAM–Chem, making the
+          chemistry module broadly applicable beyond the tropical deep convection case
+          described in the main paper.
+        </p>
+
+        <h3 id="cloudchem">CloudChem Mechanism</h3>
+
+        <p>
+          For tropical deep convection, SAM–Chem ships with the
+          <strong>CloudChem mechanism</strong> (Bardakov et al., 2021), which was
+          developed to investigate isoprene and pinene oxidation and particle formation
+          in convective updrafts. SAM–Chem implements the isoprene oxidation reactions
+          from CloudChem into a Eulerian large-eddy simulation for insight into
+          vertical profiles.
+        </p>
+
+        <p>The mechanism totals <strong>44 gas-phase reactions</strong> and <strong>7 photolysis reactions</strong>, covering:</p>
+        <ul>
+          <li>Isoprene oxidation cascade (ISOP + OH, HO<sub>2</sub>, NO, RO<sub>2</sub>, NO<sub>3</sub>)</li>
+          <li>IEPOX and isoprene nitrate formation and loss</li>
+          <li>NO<sub>x</sub>–O<sub>3</sub> chemistry</li>
+          <li>OH, HO<sub>2</sub>, H<sub>2</sub>O<sub>2</sub>, HNO<sub>3</sub>, HNO<sub>4</sub></li>
+          <li>PAN formation and thermal decomposition</li>
+          <li>CO and CH<sub>4</sub> oxidation</li>
+        </ul>
+
+        <p>
+          Three reactions were added to the original CloudChem mechanism:
+        </p>
+        <ul>
+          <li><strong>R42:</strong> HNO<sub>4</sub> → HO<sub>2</sub> + NO<sub>2</sub> — peroxynitric acid thermal decomposition, important for NO<sub>x</sub> partitioning near the surface</li>
+          <li><strong>R43:</strong> ISOP + NO<sub>3</sub> → ISOP1Nit — ensures nighttime isoprene oxidation</li>
+          <li><strong>R44:</strong> NO<sub>2</sub> + O<sub>3</sub> → NO<sub>3</sub> — increases nighttime NO<sub>3</sub> and isoprene oxidation</li>
+        </ul>
+
+        <p>
+          CloudChem was validated against MOZART-T1 (197 reactions) and RACM
+          (256 reactions) using the BOXMOX box model. With tropical photolysis
+          frequencies, all three mechanisms produce broadly consistent diurnal
+          cycles of isoprene, HCHO, NO<sub>x</sub>, OH, HO<sub>2</sub>, and O<sub>3</sub>.
+          CloudChem achieves this agreement with roughly a quarter of MOZART-T1's reactions.
+        </p>
+
+        <h3 id="photolysis">Photolysis</h3>
+
+        <p>
+          Photolysis frequencies are derived from representative tropical clear-sky
+          values calculated with the Tropospheric Ultraviolet and Visible (TUV)
+          Radiation model v5.3 (solar zenith angle = 0°, 12 km altitude, 300 DU
+          overhead ozone). These are scaled at runtime by a dynamic <em>SUN</em>
+          parameter:
+        </p>
+
+        <p style="text-align:center; font-family: var(--mono); background:var(--light-bg); padding:0.75rem; border-radius:6px; font-size:0.9rem;">
+          SUN = (SW<sub>down</sub> + SW<sub>up</sub>) / 1300 W m<sup>−2</sup>
+        </p>
+
+        <p>
+          Because SAM's shortwave radiation responds to cloud cover, time of day, and
+          season, photolysis rates vary spatially and temporally throughout the
+          simulation — this feedback is particularly important during deep convective
+          events when clouds shade the boundary layer.
+        </p>
+
+        <h3 id="heterogeneous">Heterogeneous Chemistry</h3>
+
+        <p>
+          SAM–Chem includes IEPOX uptake onto aqueous aerosol and isoprene nitrate
+          hydrolysis as heterogeneous sinks. Details are described in Yoon et al.
+          (in preparation).
+        </p>
+
+        <!-- ---- EMISSIONS ---- -->
+        <h2 id="emissions">Emissions</h2>
+
+        <h3 id="lightning">Lightning NO<sub>x</sub></h3>
+
+        <p>
+          Cloud-to-ground and intracloud lightning NO<sub>x</sub> emissions follow
+          <strong>DeCaria et al. (2000, 2005)</strong>, which provides an explicit
+          vertical distribution of NO. The model activates lightning every 3 minutes.
+        </p>
+
+        <p>
+          The vertical distribution <em>f(z)</em> is Gaussian for cloud-to-ground
+          lightning, centered at the −15 °C isotherm (location of maximum negative
+          charge). For intracloud lightning, a bimodal distribution adds a second
+          Gaussian centered at −45 °C to capture the upper-tropospheric lightning
+          channel. NO emissions are deposited only in grid boxes where radar
+          reflectivity exceeds 20 dBZ (cloud-to-ground) or where hydrometeor
+          mixing ratio exceeds 0.01 g kg<sup>−1</sup> (intracloud). Radar
+          reflectivities are simulated by the QuickBeam submodule.
+        </p>
+
+        <p>
+          Total NO production per flash is set at <strong>460 mol flash<sup>−1</sup></strong>
+          for both lightning types (DeCaria et al., 2005).
+        </p>
+
+        <h3 id="soil">Soil NO<sub>x</sub></h3>
+
+        <p>
+          Soil NO<sub>x</sub> follows the <strong>Berkeley–Dalhousie Soil NO
+          Parametrization (BDSNP)</strong> of Hudman et al. (2012), with the
+          temperature function updated following Wang et al. (2021):
+        </p>
+
+        <p style="text-align:center; font-family: var(--mono); background:var(--light-bg); padding:0.75rem; border-radius:6px; font-size:0.9rem;">
+          E<sub>NO</sub> = E<sub>NO, baseline</sub> × f(T) × g(θ)
+        </p>
+
+        <p>where:</p>
+        <ul>
+          <li><strong>f(T)</strong> — temperature dependence; exponential below 30 °C, cubic between 20–40 °C, constant above 40 °C (Wang et al., 2021)</li>
+          <li><strong>g(θ)</strong> — soil moisture dependence modeled as a Poisson distribution, peaking at θ = 0.3 (water-filled pore space)</li>
+        </ul>
+
+        <p>
+          SAM–Chem adds an interactive 2D surface soil moisture variable that
+          evolves at each time step in response to simulated precipitation and
+          a drying time scale. Soil moisture was initialized from MERRA-2
+          (θ = 0.86 for the wet season, θ = 0.72 for the dry season) and
+          tuned to match ATTO tower observations.
+        </p>
+
+        <p>
+          The baseline NO flux was tuned to match NO observations from the
+          ARM Aerosol Observing System (MAOS-A) near Manacapuru, Brazil
+          (2014–2015).
+        </p>
+
+        <h3 id="isoprene">Isoprene Emissions</h3>
+
+        <p>
+          Surface isoprene emissions use the temperature and shortwave radiation
+          activity factors from <strong>MEGAN v2.1</strong> (Guenther et al., 2012):
+        </p>
+
+        <p style="text-align:center; font-family: var(--mono); background:var(--light-bg); padding:0.75rem; border-radius:6px; font-size:0.9rem;">
+          E<sub>ISOP</sub> = E<sub>ISOP, baseline</sub> × γ<sub>T</sub> × γ<sub>P</sub>
+        </p>
+
+        <p>
+          The photosynthetic photon flux density (PPFD) is approximated from
+          SAM's downwelling shortwave radiation using a PAR fraction of 0.5
+          and a conversion factor of 2.3 μmol J<sup>−1</sup>. The baseline
+          isoprene flux was tuned to match daily-averaged isoprene mixing ratios
+          from the Tapajós National Forest (Sarkar et al., 2020).
+        </p>
+
+        <!-- ---- DRY DEPOSITION ---- -->
+        <h2 id="dry-dep">Dry Deposition</h2>
+
+        <p>
+          SAM–Chem applies one-way dry deposition at the surface for select
+          species using compiled, time-invariant deposition velocities. At
+          every chemical time step:
+        </p>
+
+        <p style="text-align:center; font-family: var(--mono); background:var(--light-bg); padding:0.75rem; border-radius:6px; font-size:0.9rem;">
+          C<sub>i</sub>(t+1) = C<sub>i</sub>(t) × (1 − v<sub>D,i</sub> Δt / z<sub>h</sub>)
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Species</th>
+              <th>v<sub>D</sub> (cm s<sup>−1</sup>)</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>NO<sub>2</sub></td><td>0.30</td><td>Adon et al. (2013), forests and savannahs</td></tr>
+            <tr><td>O<sub>3</sub></td><td>0.60</td><td>Adon et al. (2013), wet daytime forests</td></tr>
+            <tr><td>HNO<sub>3</sub></td><td>2.00</td><td>Adon et al. (2013), forests</td></tr>
+            <tr><td>ISOPOOH</td><td>1.00</td><td>Zhang et al. (2022)</td></tr>
+            <tr><td>IEPOX</td><td>1.00</td><td>Zhang et al. (2022)</td></tr>
+            <tr><td>ISOP1Nit</td><td>0.13</td><td>Zhang et al. (2022), isoprene nitrates</td></tr>
+            <tr><td>ISOPDiNit</td><td>0.13</td><td>Zhang et al. (2022), isoprene nitrates</td></tr>
+          </tbody>
+        </table>
+
+        <p>
+          Deposition currently occurs only in the lowermost grid box (~40 m height).
+          Future versions will implement a big-leaf deposition model with
+          stomatal conductance dependence.
+        </p>
+
+        <!-- ---- WET DEPOSITION ---- -->
+        <h2 id="wet-dep">Wet Deposition</h2>
+
+        <p>
+          Wet deposition is called every 60 seconds and includes three
+          scavenging mechanisms following Brasseur &amp; Jacob (2017):
+        </p>
+
+        <ul>
+          <li>
+            <strong>Convective scavenging</strong> — for cloudy parcels
+            (liquid water &gt; 0.01 g kg<sup>−1</sup>) with updraft velocity
+            &gt; 5 m s<sup>−1</sup> and increasing precipitable water. Uses
+            Henry's law partitioning and a cloudwater-to-precipitation rate
+            constant of 0.01 s<sup>−1</sup>.
+          </li>
+          <li>
+            <strong>Rainout</strong> — for any cloudy parcel with increasing
+            precipitable water (regardless of updraft speed). Same Henry's
+            law partitioning.
+          </li>
+          <li>
+            <strong>Washout</strong> — for highly soluble species
+            (K<sub>H</sub> &gt; 10<sup>4</sup> M atm<sup>−1</sup>) in
+            non-cloudy parcels below falling precipitation. Uses a washout
+            rate constant of 1 cm<sup>−1</sup> and the surface precipitation
+            flux of the column below.
+          </li>
+        </ul>
+
+        <p>
+          Scavenging uses temperature-corrected Henry's law constants (K<sub>0</sub>,
+          C<sub>R</sub>) consistent with GEOS–Chem 14.7.0 for O<sub>3</sub>,
+          H<sub>2</sub>O<sub>2</sub>, HCHO, HNO<sub>3</sub>, ISOPOOH, IEPOX,
+          isoprene nitrates, and PAN.
+        </p>
+
+        <!-- ---- MODEL SPECIFICATIONS ---- -->
+        <h2 id="specs">Model Specifications</h2>
+
+        <p>
+          Published results use two 2D simulations (wet and dry season) and one
+          3D wet season simulation:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Configuration</th>
+              <th>Domain</th>
+              <th>Δx = Δy</th>
+              <th>Δz (surface)</th>
+              <th>Period</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2D wet season</td>
+              <td>256 × 256</td>
+              <td>66.6 m</td>
+              <td>40 m</td>
+              <td>Mar 5–19, 2014</td>
+            </tr>
+            <tr>
+              <td>2D dry season</td>
+              <td>256 × 256</td>
+              <td>66.6 m</td>
+              <td>40 m</td>
+              <td>Sep 19 – Oct 3, 2014</td>
+            </tr>
+            <tr>
+              <td>3D wet season</td>
+              <td>128 × 128 × 256</td>
+              <td>66.6 m</td>
+              <td>40 m</td>
+              <td>Mar 5–19, 2014</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Vertical grid spacing begins at 40 m and increases by 1% per level,
+          becoming approximately constant (~90 m) above 5 km, reaching a domain
+          top of 20.5 km. Simulations include a 3-day spin-up period.
+        </p>
+
+        <p>
+          Large-scale forcing uses a 3-hourly, 25 mb resolution constrained
+          variational analysis from the ARM Mobile Facility (M1) near
+          Manacapuru, Brazil (Zhang et al., 2001). The 3D wet season simulation
+          ran in ~1.5 days wall-time per simulation day using 256 cores across
+          8 compute nodes.
+        </p>
+
+        <!-- ---- MODEL EVALUATION ---- -->
+        <h2 id="evaluation">Model Evaluation</h2>
+
+        <p>
+          SAM–Chem output was compared to a range of in-situ and airborne
+          observations from Amazonia:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Variables</th>
+              <th>Location / Period</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>NCAR/UCI PTR-ToF-MS (GoAmazon G-1)</td>
+              <td>Isoprene mixing ratio</td>
+              <td>T3 site (Manacapuru), IOP1 &amp; IOP2 2014</td>
+            </tr>
+            <tr>
+              <td>PTR-ToF-MS eddy covariance</td>
+              <td>Isoprene flux &amp; mixing ratio</td>
+              <td>Tapajós National Forest, Jun 2014</td>
+            </tr>
+            <tr>
+              <td>ATTO Tower PTR-MS</td>
+              <td>Isoprene mixing ratio (multi-level)</td>
+              <td>Amazon Tall Tower Observatory, 2012–2015</td>
+            </tr>
+            <tr>
+              <td>ARM AOS NO<sub>x</sub> monitor</td>
+              <td>NO, NO<sub>2</sub>, NO<sub>x</sub>, NO<sub>y</sub></td>
+              <td>GoAmazon S1 site (Manacapuru), 2014–2015</td>
+            </tr>
+            <tr>
+              <td>CAFE–Brazil (NOAH instrument)</td>
+              <td>NO mixing ratio (0–14 km)</td>
+              <td>Amazonia, Dec 2022 – Jan 2023</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          SAM–Chem shows broad agreement with both surface and airborne isoprene
+          and NO<sub>x</sub> observations across wet and dry seasons. Key known
+          biases include low surface O<sub>3</sub> in the lowermost grid boxes
+          (leading to a slightly elevated NO:NO<sub>2</sub> ratio) and some
+          overestimation of NO aloft relative to CAFE–Brazil daytime profiles.
+          See Yoon et al. (in preparation) for full details.
+        </p>
+
+        <div class="note">
+          <strong>Note:</strong> For comparison with a global model, SAM–Chem
+          output is intercompared with GEOS–Chem Classic v14.1.1 run at
+          4° × 5° horizontal resolution using the same period (March 2014).
+          Key differences arise from resolved convection, explicit lightning
+          NO<sub>x</sub> vertical distributions, and plume-scale
+          chemistry–turbulence segregation.
+        </div>
+
+      </main>
+    </div><!-- .content-layout -->
+  </div><!-- .container -->
+</div><!-- .content-body -->
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="container">
+    <p>
+      SAM–Chem is developed at the
+      <a href="https://alexjturner.github.io/" target="_blank" rel="noopener">Turner Group</a>,
+      Department of Atmospheric and Climate Science, University of Washington.
+    </p>
+    <p style="margin-top:0.4rem;">
+      &copy; 2026 SAM–Chem Developers &nbsp;·&nbsp;
+      <a href="https://github.com/sam-chem" target="_blank" rel="noopener">GitHub</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

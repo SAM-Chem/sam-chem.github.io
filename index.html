@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SAM-Chem: A fast, modular large-eddy simulation with interactive chemistry for studying atmospheric composition at the scale of clouds and convective plumes.">
+  <title>SAM–Chem</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="brand" href="index.html">SAM–Chem</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="model.html">Model</a></li>
+      <li><a href="tutorials.html">Tutorials</a></li>
+      <li><a href="publications.html">Publications &amp; Team</a></li>
+      <li><a href="https://github.com/sam-chem" class="btn-github" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="container">
+    <h1>SAM–Chem</h1>
+    <p class="subtitle">large–eddy simulation with interactive chemistry</p>
+    <p class="tagline">
+      A fast, modular, and accessible platform to investigate atmospheric chemistry
+      and transport at the spatial and temporal scales of individual clouds and
+      convective plumes — far finer than traditional chemical transport models.
+    </p>
+    <div class="hero-btns">
+      <a class="btn btn-primary-white" href="tutorials.html">Get Started</a>
+      <a class="btn btn-outline-white" href="model.html">Model Description</a>
+      <a class="btn btn-outline-white" href="publications.html">Paper</a>
+      <a class="btn btn-outline-white" href="https://github.com/sam-chem" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FEATURE CARDS
+     ============================================================ -->
+<section class="features">
+  <div class="container">
+    <h2 class="section-title">What SAM–Chem offers</h2>
+    <p class="section-sub">
+      Built on the System for Atmospheric Modeling (SAM), SAM–Chem adds a
+      fully coupled chemistry module without sacrificing performance.
+    </p>
+    <div class="cards-grid">
+
+      <div class="card">
+        <div class="card-icon">🧪</div>
+        <h3>KPP-Compatible Chemistry</h3>
+        <p>
+          Plug-and-play gas-phase mechanisms via KPP 3.3.0. Ships with the
+          <strong>CloudChem</strong> mechanism (44 gas-phase + 7 photolysis reactions)
+          tuned for tropical isoprene–NO<sub>x</sub>–OH chemistry. Swap in any
+          KPP-compatible mechanism for other applications.
+        </p>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-icon">⚡</div>
+        <h3>Interactive Emissions &amp; Deposition</h3>
+        <p>
+          Isoprene emissions via <strong>MEGAN v2.1</strong>, soil NO<sub>x</sub>
+          via the <strong>Berkeley–Dalhousie</strong> parametrization, and lightning
+          NO<sub>x</sub> via <strong>DeCaria et al. (2000, 2005)</strong> — all
+          coupled to SAM's radiation and microphysics. Wet and dry deposition included.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-icon">🚀</div>
+        <h3>Fast &amp; Scalable</h3>
+        <p>
+          ~1.5 days wall-time per simulation day on a 128 × 128 × 256 grid
+          using 256 cores. 2D simulations are an order of magnitude faster.
+          SAM–Chem maintains &gt;90% weak-scaling efficiency,
+          with superlinear strong-scaling up to 8 cores.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🌧️</div>
+        <h3>Explicit Deep Convection</h3>
+        <p>
+          Resolves convective updrafts, cloud microphysics, and lightning at
+          ~50–70 m horizontal resolution — capturing plume-scale
+          isoprene–NO<sub>x</sub> segregation that is parametrized away in
+          coarser models.
+        </p>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-icon">🌿</div>
+        <h3>Interactive Isoprene Chemistry</h3>
+        <p>
+          Surface isoprene emissions driven by light and temperature respond
+          interactively to convection-induced cooling and shading. Soil
+          NO<sub>x</sub> responds to temperature and precipitation-driven
+          soil moisture.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-icon">📦</div>
+        <h3>Modular by Design</h3>
+        <p>
+          SAM–Chem inherits SAM's modular architecture: swap advection,
+          radiation, turbulence, or microphysics schemes independently.
+          The chemistry module follows the same pattern — swap in a new
+          mechanism with a single recompile.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     QUICK SPECS BAR
+     ============================================================ -->
+<div class="specs-bar">
+  <div class="container">
+    <div class="specs-grid">
+      <div class="spec-item">
+        <div class="num">~67 m</div>
+        <div class="label">horizontal grid spacing</div>
+      </div>
+      <div class="spec-item">
+        <div class="num">~1 s</div>
+        <div class="label">model time step</div>
+      </div>
+      <div class="spec-item">
+        <div class="num">20.5 km</div>
+        <div class="label">domain height</div>
+      </div>
+      <div class="spec-item">
+        <div class="num">44 + 7</div>
+        <div class="label">gas-phase + photolysis reactions</div>
+      </div>
+      <div class="spec-item">
+        <div class="num">256</div>
+        <div class="label">vertical levels</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     KEY FINDING
+     ============================================================ -->
+<section class="finding-section">
+  <div class="container">
+    <h2 class="section-title" style="margin-bottom:2rem;">Key finding</h2>
+    <div class="finding-box">
+      <p>
+        Isoprene columns in tropical deep convection are <strong>~3× more sensitive
+        to soil NO<sub>x</sub> than to lightning NO<sub>x</sub></strong> on a
+        per-molecule basis — rising to ~7× during active convective events. This
+        contrasts with coarser chemical transport models (GEOS–Chem) and highlights
+        how resolved plume-scale chemistry alters oxidation pathways.
+      </p>
+      <cite>Yoon et al. (in preparation)</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OVERVIEW / USE CASES
+     ============================================================ -->
+<section style="padding: 4rem 0;">
+  <div class="container">
+    <h2 class="section-title">Use cases</h2>
+    <p class="section-sub">
+      SAM–Chem was developed with tropical deep convection in mind, but its
+      modular design supports a range of atmospheric chemistry applications.
+    </p>
+    <div class="cards-grid" style="margin-top: 0;">
+
+      <div class="card">
+        <h3>Tropical chemistry &amp; convection</h3>
+        <p>
+          Simulate isoprene, NO<sub>x</sub>, OH, and related species in
+          Amazonian or Maritime Continent environments. Constrain with ARM,
+          ATTO, GoAmazon, or airborne campaign data.
+        </p>
+      </div>
+
+      <div class="card card-orange">
+        <h3>Subgrid process studies</h3>
+        <p>
+          Quantify chemistry–turbulence segregation, canopy-layer chemistry,
+          or lightning NO<sub>x</sub> production at resolutions inaccessible
+          to global and regional models.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <h3>Satellite retrieval support</h3>
+        <p>
+          Generate high-resolution vertical profiles to interpret satellite
+          retrievals (e.g., CrIS isoprene, OMI NO<sub>2</sub>) that lack
+          vertical sensitivity information.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     QUICK LINKS
+     ============================================================ -->
+<section style="padding: 2rem 0 4rem; text-align: center;">
+  <div class="container">
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.95rem;">Ready to dive in?</p>
+    <a class="btn btn-primary-white" href="tutorials.html"
+       style="background:var(--primary); color:#fff; margin:0.4rem;">Get Started</a>
+    <a class="btn btn-primary-white" href="model.html"
+       style="background:var(--accent); color:#fff; margin:0.4rem;">Model Details</a>
+    <a class="btn btn-primary-white" href="publications.html"
+       style="background:var(--orange); color:#fff; margin:0.4rem;">Cite SAM–Chem</a>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="container">
+    <p>
+      SAM–Chem is developed at the
+      <a href="https://alexjturner.github.io/" target="_blank" rel="noopener">Turner Group</a>,
+      Department of Atmospheric and Climate Science, University of Washington.
+    </p>
+    <p style="margin-top:0.4rem;">
+      &copy; 2026 SAM–Chem Developers &nbsp;·&nbsp;
+      <a href="https://github.com/sam-chem" target="_blank" rel="noopener">GitHub</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

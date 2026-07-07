@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Getting started with SAM-Chem: prerequisites, installation, 2D and 3D simulations, and output.">
+  <title>Tutorials — SAM–Chem</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="brand" href="index.html">SAM–Chem</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="model.html">Model</a></li>
+      <li><a href="tutorials.html" class="active">Tutorials</a></li>
+      <li><a href="publications.html">Publications &amp; Team</a></li>
+      <li><a href="https://github.com/sam-chem" class="btn-github" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<header class="page-header">
+  <div class="container">
+    <h1>Getting Started</h1>
+    <p>
+      From a fresh checkout to a running simulation. These tutorials cover
+      building SAM–Chem, configuring a case, and inspecting the output.
+    </p>
+  </div>
+</header>
+
+<!-- ============================================================
+     CONTENT
+     ============================================================ -->
+<div class="content-body">
+  <div class="container">
+    <div class="content-layout">
+
+      <!-- Sidebar TOC -->
+      <aside class="content-sidebar">
+        <h4>On this page</h4>
+        <ul>
+          <li><a href="#prerequisites">Prerequisites</a></li>
+          <li><a href="#install">Installation</a></li>
+          <li><a href="#build">Building SAM–Chem</a></li>
+          <li><a href="#run-2d">Running a 2D Simulation</a></li>
+          <li><a href="#run-3d">Running a 3D Simulation</a></li>
+          <li><a href="#output">Output Files</a></li>
+          <li><a href="#analysis">Basic Analysis</a></li>
+          <li><a href="#next">Next Steps</a></li>
+        </ul>
+      </aside>
+
+      <!-- Main content -->
+      <main class="content-main">
+
+        <!-- ---- PREREQUISITES ---- -->
+        <h2 id="prerequisites">Prerequisites</h2>
+
+        <p>SAM–Chem has the same build requirements as SAM v6.10.9 plus KPP 3.3.0:</p>
+
+        <ul>
+          <li>A Fortran compiler (Intel <code>ifort</code> or GNU <code>gfortran ≥ 9</code>)</li>
+          <li>MPI implementation (OpenMPI, MPICH, or Intel MPI)</li>
+          <li>NetCDF-Fortran library</li>
+          <li>KPP 3.3.0 (for regenerating the chemistry code; not required to run)</li>
+          <li>Python 3 with <code>numpy</code>, <code>scipy</code>, and <code>netCDF4</code> (for post-processing)</li>
+        </ul>
+
+        <p>
+          On a typical HPC cluster these are available as environment modules.
+          For example, on a system using Lmod:
+        </p>
+
+        <pre><code>module load intel/oneapi mpi/intel netcdf</code></pre>
+
+        <div class="note">
+          <strong>Note:</strong> You do <em>not</em> need KPP to run SAM–Chem. The
+          pre-generated Fortran source for the CloudChem mechanism is included in the
+          repository. KPP is only needed if you want to compile a different mechanism.
+        </div>
+
+        <!-- ---- INSTALLATION ---- -->
+        <h2 id="install">Installation</h2>
+
+        <p>Clone the repository from GitHub:</p>
+
+        <pre><code>git clone https://github.com/sam-chem/sam-chem.git
+cd sam-chem</code></pre>
+
+        <p>The repository layout is:</p>
+
+        <pre><code>sam-chem/
+├── SRC/            # Fortran source (SAM + chemistry module)
+├── CHEMISTRY/      # KPP mechanism files and generated Fortran
+│   └── CloudChem/  # CloudChem mechanism (.kpp, .f90)
+├── CASES/          # Example case directories
+│   ├── GoAmazon_2D_WetSeason/
+│   ├── GoAmazon_2D_DrySeason/
+│   └── GoAmazon_3D_WetSeason/
+├── SCRIPTS/        # Build helpers and post-processing utilities
+└── Build/          # Build output (created at compile time)</code></pre>
+
+        <!-- ---- BUILD ---- -->
+        <h2 id="build">Building SAM–Chem</h2>
+
+        <p>
+          SAM–Chem uses the same Makefile system as SAM.
+          Edit <code>Build/Makefile</code> to point to your compiler and NetCDF paths:
+        </p>
+
+        <pre><code># Build/Makefile — edit these lines
+FC     = mpiifort           # or mpif90 for GNU
+NETCDF = /path/to/netcdf</code></pre>
+
+        <p>Then compile from the <code>Build/</code> directory:</p>
+
+        <pre><code>cd Build
+make -j 8</code></pre>
+
+        <p>
+          A successful build produces the executable <code>Build/SAM_ADV_CGLS_BN2_MICRO_M2005_RAD_RRTM4PBL</code>.
+          The long name encodes the compile-time scheme selections.
+        </p>
+
+        <div class="note warning">
+          <strong>Common issue:</strong> If the build fails with NetCDF linking errors,
+          double-check that <code>nc-config --flibs</code> and <code>nc-config --prefix</code>
+          match the paths in your Makefile. You may need to set
+          <code>LD_LIBRARY_PATH</code> if your NetCDF is installed in a non-standard location.
+        </div>
+
+        <!-- ---- RUN 2D ---- -->
+        <h2 id="run-2d">Running a 2D Simulation</h2>
+
+        <p>
+          The GoAmazon 2D wet season case is the fastest way to test a working
+          SAM–Chem installation. The domain is 256 columns × 256 vertical levels
+          with no third dimension, so a 1-day test runs in roughly 15–30 minutes
+          on 16 cores.
+        </p>
+
+        <h3>1. Copy and inspect the case directory</h3>
+
+        <pre><code>cp -r CASES/GoAmazon_2D_WetSeason CASES/my_2D_test
+cd CASES/my_2D_test
+ls</code></pre>
+
+        <p>Key files in a case directory:</p>
+
+        <table>
+          <thead>
+            <tr><th>File</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>prm</code></td><td>Run-control namelist (domain size, time step, physics switches)</td></tr>
+            <tr><td><code>lsf.txt</code></td><td>Large-scale forcing (3-hourly, 25 mb resolution)</td></tr>
+            <tr><td><code>snd.txt</code></td><td>Initial sounding (T, q, u, v profiles)</td></tr>
+            <tr><td><code>chemistry.nml</code></td><td>Chemistry namelist (soil moisture, emission tuning, deposition switches)</td></tr>
+            <tr><td><code>run.sh</code></td><td>Submission script for your job scheduler</td></tr>
+          </tbody>
+        </table>
+
+        <h3>2. Configure the run</h3>
+
+        <p>
+          Open <code>prm</code> and confirm the key namelist parameters:
+        </p>
+
+        <pre><code>&PARAMETERS
+  nx = 256, ny = 1, nz = 256,
+  dx = 66.6, dy = 66.6,
+  nstop = 86400,          ! stop after 1 day (seconds)
+  noutput = 3600,         ! write output every hour
+  ...
+&END</code></pre>
+
+        <p>
+          Open <code>chemistry.nml</code> and check the soil moisture initial value
+          and emission flags are set for the wet season:
+        </p>
+
+        <pre><code>&CHEMISTRY
+  do_chemistry   = .true.,
+  do_lightning   = .true.,
+  do_soil_nox    = .true.,
+  do_isoprene    = .true.,
+  do_dry_dep     = .true.,
+  do_wet_dep     = .true.,
+  soil_moisture  = 0.86,   ! MERRA-2 wet season value
+&END</code></pre>
+
+        <h3>3. Submit the job</h3>
+
+        <p>Edit <code>run.sh</code> for your cluster's scheduler, then submit:</p>
+
+        <pre><code># SLURM example
+sbatch run.sh
+
+# PBS/Torque example
+qsub run.sh</code></pre>
+
+        <p>
+          The <code>run.sh</code> examples in each case directory target 16 cores (1 node).
+          Adjust <code>#SBATCH --ntasks</code> and <code>mpirun -np</code> together.
+        </p>
+
+        <!-- ---- RUN 3D ---- -->
+        <h2 id="run-3d">Running a 3D Simulation</h2>
+
+        <p>
+          The 3D wet season case adds the second horizontal dimension
+          (128 × 128 × 256), enabling resolved convective cells and three-dimensional
+          transport. Budget roughly 1.5 days wall-time per simulation day on 256 cores.
+        </p>
+
+        <pre><code>cp -r CASES/GoAmazon_3D_WetSeason CASES/my_3D_test
+cd CASES/my_3D_test</code></pre>
+
+        <p>
+          The <code>prm</code> file in this case sets <code>nx = 128, ny = 128</code>.
+          Everything else is identical to the 2D case. The <code>run.sh</code> example
+          requests 256 MPI tasks across 8 nodes (32 cores per node).
+        </p>
+
+        <div class="note">
+          <strong>Tip:</strong> Run a short 2D test (1–3 days) first to verify your
+          build and forcing files are correct before committing to a multi-day 3D run.
+        </div>
+
+        <!-- ---- OUTPUT ---- -->
+        <h2 id="output">Output Files</h2>
+
+        <p>SAM–Chem writes NetCDF output in several categories:</p>
+
+        <table>
+          <thead>
+            <tr><th>File pattern</th><th>Contents</th><th>Default frequency</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>*.nc2d</code></td>
+              <td>2D surface and column fields (precipitation, SWdn, LWdn, LNO<sub>x</sub> flash rate)</td>
+              <td>Hourly</td>
+            </tr>
+            <tr>
+              <td><code>*.nc3d</code></td>
+              <td>3D instantaneous snapshots (T, q, u, v, cloud water, all tracers)</td>
+              <td>3-hourly</td>
+            </tr>
+            <tr>
+              <td><code>*.ncstat</code></td>
+              <td>Domain-averaged vertical profiles and statistics</td>
+              <td>10 minutes</td>
+            </tr>
+            <tr>
+              <td><code>*.ncchem</code></td>
+              <td>Domain-averaged chemistry profiles and column integrals</td>
+              <td>10 minutes</td>
+            </tr>
+            <tr>
+              <td><code>*.restart</code></td>
+              <td>Binary restart file (all prognostic variables)</td>
+              <td>Daily</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>Output frequencies are controlled in <code>prm</code>:</p>
+
+        <pre><code>noutput  = 3600    ! 3D output interval (seconds)
+nstat    = 600     ! statistics interval (seconds)
+ncheckpoint = 86400 ! restart write interval (seconds)</code></pre>
+
+        <!-- ---- ANALYSIS ---- -->
+        <h2 id="analysis">Basic Analysis</h2>
+
+        <p>
+          The <code>SCRIPTS/</code> directory includes Python utilities for
+          reading SAM–Chem output. Open the statistics file:
+        </p>
+
+        <pre><code>import netCDF4 as nc
+import numpy as np
+import matplotlib.pyplot as plt
+
+ds = nc.Dataset('GoAmazon_2D_WetSeason_STATS.ncstat')
+t  = ds.variables['time'][:]        # hours
+z  = ds.variables['z'][:]           # km
+ISOP = ds.variables['ISOP'][:]      # ppb, (time, z)
+
+plt.figure()
+plt.pcolormesh(t, z, ISOP.T, shading='auto', cmap='YlGn')
+plt.colorbar(label='Isoprene (ppb)')
+plt.xlabel('Time (h)'); plt.ylabel('Height (km)')
+plt.title('Domain-mean isoprene')
+plt.savefig('isoprene_profile.png', dpi=150)</code></pre>
+
+        <p>
+          Chemical species in <code>.ncstat</code> and <code>.ncchem</code> files
+          follow the CloudChem naming convention: <code>ISOP</code>, <code>OH</code>,
+          <code>HO2</code>, <code>O3</code>, <code>NO</code>, <code>NO2</code>,
+          <code>HNO3</code>, <code>IEPOX</code>, <code>ISOPOOH</code>,
+          <code>ISOP1Nit</code>, <code>ISOPDiNit</code>, <code>PAN</code>, etc.
+          All concentrations are in ppb.
+        </p>
+
+        <!-- ---- NEXT STEPS ---- -->
+        <h2 id="next">Next Steps</h2>
+
+        <ul>
+          <li>
+            <strong>Swap the chemistry mechanism</strong> — compile any KPP-compatible
+            <code>.kpp</code> file with KPP 3.3.0, place the output in
+            <code>CHEMISTRY/&lt;YourMechanism&gt;/</code>, and recompile. See
+            <code>CHEMISTRY/README.md</code> for instructions.
+          </li>
+          <li>
+            <strong>Change the large-scale forcing</strong> — replace <code>lsf.txt</code>
+            and <code>snd.txt</code> with ARM-format forcing files for a different
+            campaign. SAM's standard tools for constructing these files work
+            unchanged in SAM–Chem.
+          </li>
+          <li>
+            <strong>Extend emissions</strong> — additional surface emission fluxes
+            can be added as new tracers via the <code>SURF_FLUX</code> interface
+            in <code>SRC/chemistry_surface.f90</code>.
+          </li>
+          <li>
+            <strong>Compare with GEOS–Chem</strong> — scripts for regridding
+            GEOS–Chem Classic output to SAM–Chem domain coordinates are included
+            in <code>SCRIPTS/geos-chem-comparison/</code>.
+          </li>
+        </ul>
+
+        <p>
+          Questions? Open an issue on
+          <a href="https://github.com/sam-chem" target="_blank" rel="noopener">GitHub</a>
+          or contact the development team via the
+          <a href="publications.html">Publications &amp; Team</a> page.
+        </p>
+
+      </main>
+    </div><!-- .content-layout -->
+  </div><!-- .container -->
+</div><!-- .content-body -->
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="container">
+    <p>
+      SAM–Chem is developed at the
+      <a href="https://alexjturner.github.io/" target="_blank" rel="noopener">Turner Group</a>,
+      Department of Atmospheric and Climate Science, University of Washington.
+    </p>
+    <p style="margin-top:0.4rem;">
+      &copy; 2026 SAM–Chem Developers &nbsp;·&nbsp;
+      <a href="https://github.com/sam-chem" target="_blank" rel="noopener">GitHub</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
