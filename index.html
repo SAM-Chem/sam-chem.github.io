@@ -66,45 +66,12 @@
     </p>
     <div class="cards-grid">
 
-      <div class="card">
-
-        <h3>KPP-Compatible Chemistry</h3>
-        <p>
-          Plug-and-play gas-phase mechanisms via KPP 3.3.0. Ships with the
-          <strong>CloudChem</strong> mechanism (44 gas-phase + 7 photolysis reactions)
-          tuned for tropical isoprene–NO<sub>x</sub>–OH chemistry. Swap in any
-          KPP-compatible mechanism for other applications.
-        </p>
-      </div>
-
-      <div class="card card-orange">
-
-        <h3>Interactive Emissions &amp; Deposition</h3>
-        <p>
-          Isoprene emissions via <strong>MEGAN v2.1</strong>, soil NO<sub>x</sub>
-          via the <strong>Berkeley–Dalhousie</strong> parametrization, and lightning
-          NO<sub>x</sub> via <strong>DeCaria et al. (2000, 2005)</strong> — all
-          coupled to SAM's radiation and microphysics. Wet and dry deposition included.
-        </p>
-      </div>
-
       <div class="card card-blue">
-
-        <h3>Fast &amp; Scalable</h3>
-        <p>
-          ~1.5 days wall-time per simulation day on a 128 × 128 × 256 grid
-          using 256 cores. 2D simulations are an order of magnitude faster.
-          SAM–Chem maintains &gt;90% weak-scaling efficiency,
-          with superlinear strong-scaling up to 8 cores.
-        </p>
-      </div>
-
-      <div class="card">
 
         <h3>Explicit Deep Convection</h3>
         <p>
           Resolves convective updrafts, cloud microphysics, and lightning at
-          ~50–70 m horizontal resolution — capturing plume-scale
+          ~50 m horizontal resolution.  Captures plume-scale
           isoprene–NO<sub>x</sub> segregation that is parametrized away in
           coarser models.
         </p>
@@ -112,23 +79,24 @@
 
       <div class="card card-orange">
 
-        <h3>Interactive Isoprene Chemistry</h3>
+        <h3>Interactive Emissions</h3>
         <p>
-          Surface isoprene emissions driven by light and temperature respond
-          interactively to convection-induced cooling and shading. Soil
-          NO<sub>x</sub> responds to temperature and precipitation-driven
-          soil moisture.
+          Surface isoprene and soil NO<sub>x</sub> emissions respond to light, 
+          temperature, and precipitation-driven soil moisture. 
+          Lightning NO<sub>x</sub> is generated in real time from 
+          simulated convective intensity and cloud-to-ground/intracloud 
+          flash rates.
         </p>
       </div>
 
-      <div class="card card-blue">
+      <div class="card">
 
-        <h3>Modular by Design</h3>
+        <h3>KPP-Compatible Chemistry</h3>
         <p>
-          SAM–Chem inherits SAM's modular architecture: swap advection,
-          radiation, turbulence, or microphysics schemes independently.
-          The chemistry module follows the same pattern — swap in a new
-          mechanism with a single recompile.
+          Plug-and-play gas-phase mechanisms via KPP. Ships with the
+          CloudChem mechanism (44 gas-phase + 7 photolysis reactions)
+          tuned for tropical isoprene–NO<sub>x</sub>–OH chemistry. Swap in any
+          mechanism for other applications.
         </p>
       </div>
 
@@ -143,24 +111,16 @@
   <div class="container">
     <div class="specs-grid">
       <div class="spec-item">
-        <div class="num">~67 m</div>
-        <div class="label">horizontal grid spacing</div>
+        <div class="num">~50 m</div>
+        <div class="label">capable of 50m resolution</div>
       </div>
       <div class="spec-item">
-        <div class="num">~1 s</div>
-        <div class="label">model time step</div>
+        <div class="num">1 s</div>
+        <div class="label">chemical time step</div>
       </div>
       <div class="spec-item">
-        <div class="num">20.5 km</div>
-        <div class="label">domain height</div>
-      </div>
-      <div class="spec-item">
-        <div class="num">44 + 7</div>
-        <div class="label">gas-phase + photolysis reactions</div>
-      </div>
-      <div class="spec-item">
-        <div class="num">256</div>
-        <div class="label">vertical levels</div>
+        <div class="num">highly parallelized</div>
+        <div class="label">superlinear strong-scaling speedup through 128 cores</div>
       </div>
     </div>
   </div>
@@ -187,16 +147,14 @@
      ============================================================ -->
 <section class="finding-section">
   <div class="container">
-    <h2 class="section-title" style="margin-bottom:2rem;">Key finding</h2>
+    <h2 class="section-title" style="margin-bottom:2rem;">Why SAM–Chem?</h2>
     <div class="finding-box">
       <p>
-        Isoprene columns in tropical deep convection are <strong>~3× more sensitive
-        to soil NO<sub>x</sub> than to lightning NO<sub>x</sub></strong> on a
-        per-molecule basis — rising to ~7× during active convective events. This
-        contrasts with coarser chemical transport models (GEOS–Chem) and highlights
-        how resolved plume-scale chemistry alters oxidation pathways.
+        Traditional chemical transport models parametrize convection away, 
+        SAM–Chem simulates it explicitly. SAM–Chem couples LES-resolution 
+        dynamics with interactive chemistry, from the surface to 20 km at 
+        ~50m resolution.
       </p>
-      <cite>Yoon et al. (in preparation)</cite>
     </div>
   </div>
 </section>
@@ -213,7 +171,7 @@
     </p>
     <div class="cards-grid" style="margin-top: 0;">
 
-      <div class="card">
+      <div class="card card-blue">
         <h3>Tropical chemistry &amp; convection</h3>
         <p>
           Simulate isoprene, NO<sub>x</sub>, OH, and related species in
@@ -231,7 +189,7 @@
         </p>
       </div>
 
-      <div class="card card-blue">
+      <div class="card">
         <h3>Satellite retrieval support</h3>
         <p>
           Generate high-resolution vertical profiles to interpret satellite
