@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Technical description of the SAM-Chem large eddy simulation: chemistry, emissions, deposition, and model evaluation.">
-  <title>Model Description | SAM–Chem</title>
+  <meta name="description" content="Technical description of the gSAM–Chem large eddy simulation: chemistry, emissions, deposition, and model evaluation.">
+  <title>Model Description | gSAM–Chem</title>
   <link rel="icon" href="images/logo.ico">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -15,13 +15,13 @@
      ============================================================ -->
 <nav class="navbar">
   <div class="container nav-inner">
-    <a class="brand" href="index.html" style="display:flex; align-items:center; gap:0.6rem;"><img src="images/Logo.png" alt="" style="height:44px; width:auto; display:block;"><span>SAM–Chem</span></a>
+    <a class="brand" href="index.html" style="display:flex; align-items:center; gap:0.6rem;"><img src="images/Logo.png" alt="" style="height:44px; width:auto; display:block;"><span>gSAM–Chem</span></a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="model.html" class="active">Model</a></li>
       <li><a href="tutorials.html">Tutorials</a></li>
       <li><a href="publications.html">Publications &amp; Team</a></li>
-      <li><a href="https://github.com/sam-chem/sam-chem" class="btn-github" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://github.com/gsam-chem/gsam-chem" class="btn-github" target="_blank" rel="noopener">GitHub</a></li>
     </ul>
   </div>
 </nav>
@@ -33,7 +33,7 @@
   <div class="container">
     <h1>Model Description</h1>
     <p>
-      SAM–Chem couples the System for Atmospheric Modeling (SAM) dynamical
+      gSAM–Chem couples the System for Atmospheric Modeling (SAM) dynamical
       core with a fully interactive chemistry module, including gas-phase and
       heterogeneous chemistry, photolysis, emissions, and deposition.
     </p>
@@ -74,7 +74,7 @@
         <h2 id="overview">Overview</h2>
 
         <p>
-          SAM–Chem builds on SAM version 6.10.9 (released February 2016) and adds a
+          gSAM–Chem builds on SAM version 6.10.9 (released February 2016) and adds a
           new chemistry module that is called at every model time step after the
           microphysics module and before the radiation module (Figure 1 below; Yoon et al.,
           in prep.). The chemistry module checks for the tropopause height (identified
@@ -94,7 +94,7 @@
         </ul>
 
         <p>
-          SAM–Chem's chemistry and associated submodules are called at every model
+          gSAM–Chem's chemistry and associated submodules are called at every model
           time step. Wet deposition is called every 60 seconds; lightning emissions
           every 180 seconds. Surface and lightning emissions are updated alongside
           other surface fluxes, prior to the chemistry module.
@@ -102,10 +102,10 @@
 
         <figure style="margin: 2rem 0; text-align: center;">
           <img src="images/flowchart.png"
-               alt="SAM–Chem model time-step flowchart showing the sequence of dynamics, surface fluxes, microphysics, chemistry, and radiation, with a zoom into the chemistry module"
+               alt="gSAM–Chem model time-step flowchart showing the sequence of dynamics, surface fluxes, microphysics, chemistry, and radiation, with a zoom into the chemistry module"
                style="max-width: 100%; border-radius: 6px;">
           <figcaption style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
-            <strong>Figure 1.</strong> Left: SAM–Chem model time-step sequence. Right: zoom into the
+            <strong>Figure 1.</strong> Left: gSAM–Chem model time-step sequence. Right: zoom into the
             chemistry module, showing the KPP integration, dry and wet deposition, and
             heterogeneous chemistry sub-steps called each time step.
           </figcaption>
@@ -115,7 +115,7 @@
         <h2 id="chemistry">Gas-Phase Chemistry</h2>
 
         <p>
-          SAM–Chem is fully KPP-compatible for gas-phase chemistry, compiled using
+          gSAM–Chem is fully KPP-compatible for gas-phase chemistry, compiled using
           <strong>KPP 3.3.0</strong> (Damian et al., 2002). The solver is an implicit
           <strong>RODAS-3 Rosenbrock</strong> solver with no mechanism auto-reduction.
           The solver allows a maximum of 40 integration steps and automatically clips
@@ -124,7 +124,7 @@
         </p>
 
         <p>
-          Any KPP-compatible mechanism can be compiled into SAM–Chem, making the
+          Any KPP-compatible mechanism can be compiled into gSAM–Chem, making the
           chemistry module broadly applicable beyond the tropical deep convection case
           described in the main paper.
         </p>
@@ -132,10 +132,10 @@
         <h3 id="cloudchem">CloudChem Mechanism</h3>
 
         <p>
-          For tropical deep convection, SAM–Chem ships with the
+          For tropical deep convection, gSAM–Chem ships with the
           <strong>CloudChem mechanism</strong> (Bardakov et al., 2021), which was
           developed to investigate isoprene and pinene oxidation and particle formation
-          in convective updrafts. SAM–Chem implements the isoprene oxidation reactions
+          in convective updrafts. gSAM–Chem implements the isoprene oxidation reactions
           from CloudChem into a Eulerian large eddy simulation for insight into
           vertical profiles.
         </p>
@@ -191,7 +191,7 @@
         <h3 id="heterogeneous">Heterogeneous Chemistry</h3>
 
         <p>
-          SAM–Chem includes IEPOX uptake onto aqueous aerosol and isoprene nitrate
+          gSAM–Chem includes IEPOX uptake onto aqueous aerosol and isoprene nitrate
           hydrolysis as heterogeneous sinks. Details are described in Yoon et al.
           (in preparation).
         </p>
@@ -242,7 +242,7 @@
         </ul>
 
         <p>
-          SAM–Chem adds an interactive 2D surface soil moisture variable that
+          gSAM–Chem adds an interactive 2D surface soil moisture variable that
           evolves at each time step in response to simulated precipitation and
           a drying time scale. Soil moisture was initialized from MERRA-2
           (θ = 0.86 for the wet season, θ = 0.72 for the dry season) and
@@ -278,7 +278,7 @@
         <h2 id="dry-dep">Dry Deposition</h2>
 
         <p>
-          SAM–Chem applies one-way dry deposition at the surface for select
+          gSAM–Chem applies one-way dry deposition at the surface for select
           species using compiled, time-invariant deposition velocities. At
           every chemical time step:
         </p>
@@ -410,7 +410,7 @@
         <h2 id="evaluation">Model Evaluation</h2>
 
         <p>
-          SAM–Chem output was compared to a range of in-situ and airborne
+          gSAM–Chem output was compared to a range of in-situ and airborne
           observations from Amazonia:
         </p>
 
@@ -452,7 +452,7 @@
         </table>
 
         <p>
-          SAM–Chem shows broad agreement with both surface and airborne isoprene
+          gSAM–Chem shows broad agreement with both surface and airborne isoprene
           and NO<sub>x</sub> observations across wet and dry seasons. Key known
           biases include low surface O<sub>3</sub> in the lowermost grid boxes
           (leading to a slightly elevated NO:NO<sub>2</sub> ratio) and some
@@ -461,7 +461,7 @@
         </p>
 
         <div class="note">
-          <strong>Note:</strong> For comparison with a global model, SAM–Chem
+          <strong>Note:</strong> For comparison with a global model, gSAM–Chem
           output is intercompared with GEOS–Chem Classic v14.1.1 run at
           4° × 5° horizontal resolution using the same period (March 2014).
           Key differences arise from resolved convection, explicit lightning
@@ -480,8 +480,8 @@
 <footer>
   <div class="container">
     <p style="margin-top:0.4rem;">
-      &copy; 2026 SAM–Chem Developers &nbsp;·&nbsp;
-      <a href="https://github.com/sam-chem/sam-chem" target="_blank" rel="noopener">GitHub</a>
+      &copy; 2026 gSAM–Chem Developers &nbsp;·&nbsp;
+      <a href="https://github.com/gsam-chem/gsam-chem" target="_blank" rel="noopener">GitHub</a>
     </p>
   </div>
 </footer>
