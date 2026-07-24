@@ -1,1 +1,1 @@
-# sam-chem.github.io
+# gsam-chem.github.io
