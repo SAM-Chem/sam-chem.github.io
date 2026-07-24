@@ -20,7 +20,7 @@
 /* ---- RESET ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { overflow-x: hidden; }
+html { }
 
 body {
   font-family: var(--font);
@@ -696,13 +696,9 @@ footer a:hover { color: #fff; }
     overflow-x: auto;
   }
 
-  /* Prevent long words/URLs from overflowing */
-  .content-main {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-word;
-  }
+  /* Smaller font overall — keeps desktop size untouched */
+  body { font-size: 14px; }
 
   /* Smaller h2 on mobile */
-  .content-main h2 { font-size: 1.25rem; }
+  .content-main h2 { font-size: 1.2rem; }
 }
