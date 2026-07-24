@@ -20,12 +20,15 @@
 /* ---- RESET ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { overflow-x: hidden; }
+
 body {
   font-family: var(--font);
   color: var(--text);
   line-height: 1.65;
   background: var(--white);
   font-size: 16px;
+  overflow-x: hidden;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -633,7 +636,7 @@ footer a:hover { color: #fff; }
     right: 0;
     flex-direction: column;
     background: var(--primary);
-    padding: 0.5rem 0 0.75rem;
+    padding: 0.4rem 0 0.75rem;
     box-shadow: 0 6px 16px rgba(0,0,0,0.3);
     z-index: 199;
     gap: 0;
@@ -641,17 +644,31 @@ footer a:hover { color: #fff; }
   .nav-links.open { display: flex; }
 
   .nav-links li { width: 100%; }
+
+  /* Full-width links so the active/hover background covers the whole row */
   .nav-links a {
-    padding: 0.7rem 1.5rem;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem 1.5rem;
     border-radius: 0;
     font-size: 0.95rem;
+    white-space: normal;
   }
+
   .btn-github {
     display: block;
-    margin: 0.5rem 1.5rem 0 !important;
+    margin: 0.25rem 1rem 0 !important;
     border-radius: 5px !important;
     text-align: center;
+    width: calc(100% - 2rem) !important;
+    box-sizing: border-box;
   }
+
+  /* Tighten page-header on mobile */
+  .page-header { padding: 2rem 0 1.75rem; }
+  .page-header h1 { font-size: 1.6rem; }
+  .page-header p { font-size: 0.9rem; }
 }
 
 @media (max-width: 640px) {
@@ -675,5 +692,17 @@ footer a:hover { color: #fff; }
   .content-main pre {
     font-size: 0.78rem;
     padding: 1rem;
+    max-width: 100%;
+    overflow-x: auto;
   }
+
+  /* Prevent long words/URLs from overflowing */
+  .content-main {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Smaller h2 on mobile */
+  .content-main h2 { font-size: 1.25rem; }
 }
