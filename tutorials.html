@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Getting started with SAM–Chem: prerequisites, installation, 2D and 3D simulations, and output.">
+  <meta name="description" content="Getting started with gSAM–Chem: prerequisites, installation, 2D and 3D simulations, and output.">
   <title>Tutorials | gSAM–Chem</title>
   <link rel="icon" href="images/logo.ico">
   <link rel="stylesheet" href="css/style.css">
@@ -16,6 +16,9 @@
 <nav class="navbar">
   <div class="container nav-inner">
     <a class="brand" href="index.html" style="display:flex; align-items:center; gap:0.6rem;"><img src="images/Logo.png" alt="" style="height:44px; width:auto; display:block;"><span>gSAM–Chem</span></a>
+    <button class="hamburger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="model.html">Model</a></li>
@@ -67,10 +70,10 @@
         <!-- ---- PREREQUISITES ---- -->
         <h2 id="prerequisites">Prerequisites</h2>
 
-        <p>gSAM–Chem has the same build requirements as SAM v6.10.9 plus KPP 3.3.0:</p>
+        <p>gSAM–Chem builds on gSAM version 1.8 and requires:</p>
 
         <ul>
-          <li>A Fortran compiler (Intel <code>ifort</code> or GNU <code>gfortran ≥ 9</code>)</li>
+          <li>A Fortran compiler (Intel <code>ifort</code>/<code>ifx</code> or GNU <code>gfortran ≥ 9</code>)</li>
           <li>MPI implementation (OpenMPI, MPICH, or Intel MPI)</li>
           <li>NetCDF-Fortran library</li>
           <li>KPP 3.3.0 (for regenerating the chemistry code; not required to run)</li>
@@ -95,66 +98,117 @@
 
         <p>Clone the repository from GitHub:</p>
 
-        <pre><code>git clone https://github.com/gsam-chem/gsam-chem/gsam-chem.git
+        <pre><code>git clone https://github.com/gsam-chem/gsam-chem.git
 cd gsam-chem</code></pre>
 
         <p>The repository layout is:</p>
 
         <pre><code>gsam-chem/
-├── SRC/            # Fortran source (SAM + chemistry module)
-├── CHEMISTRY/      # KPP mechanism files and generated Fortran
-│   └── CloudChem/  # CloudChem mechanism (.kpp, .f90)
-├── CASES/          # Example case directories
-│   ├── GoAmazon_2D_WetSeason/
-│   ├── GoAmazon_2D_DrySeason/
-│   └── GoAmazon_3D_WetSeason/
-├── SCRIPTS/        # Build helpers and post-processing utilities
-└── Build/          # Build output (created at compile time)</code></pre>
+├── SRC/                    # Fortran source (gSAM + chemistry module)
+│   ├── CHEMISTRY/          # Chemistry module
+│   │   ├── CLOUDCHEM/      # CloudChem KPP mechanism (.kpp, .f90)
+│   │   └── HET_CHEM/       # Heterogeneous chemistry
+│   ├── SLM/                # Simple Land Model
+│   ├── MICRO_M2005/        # Microphysics
+│   ├── SGS_TKE/            # Turbulence closure
+│   ├── RAD_RRTM/           # Radiation
+│   └── ...                 # Other dynamical core modules
+├── CASES/                  # Example case directories
+│   └── goAMAZON_deep_convection/
+├── SCRIPTS/                # Post-processing utilities
+├── GLOBAL_DATA/            # Global data files (SST, ozone, etc.)
+├── GRIDS/                  # Grid definition files
+├── UTIL/                   # Utilities
+├── Changes/                # Changelog
+├── DOC/                    # Documentation
+├── OBJ/                    # Build output (created at compile time)
+├── Build                   # Build script (csh)
+├── CaseName                # Active case name
+├── gSAM                    # Compiled executable
+├── gsam.run                # Job submission script
+└── Makefile                # Makefile</code></pre>
 
         <!-- ---- BUILD ---- -->
         <h2 id="build">Building gSAM–Chem</h2>
 
         <p>
-          gSAM–Chem uses the same Makefile system as SAM.
-          Edit <code>Build/Makefile</code> to point to your compiler and NetCDF paths:
+          Building gSAM–Chem is a two-step process: first configure the top-level
+          <code>Makefile</code> for your system, then run the <code>Build</code> csh script.
         </p>
 
-        <pre><code># Build/Makefile — edit these lines
-FC     = mpiifort           # or mpif90 for GNU
-NETCDF = /path/to/netcdf</code></pre>
-
-        <p>Then compile from the <code>Build/</code> directory:</p>
-
-        <pre><code>cd Build
-make -j 8</code></pre>
+        <h3>1. Configure the Makefile</h3>
 
         <p>
-          A successful build produces the executable <code>Build/SAM_ADV_CGLS_BN2_MICRO_M2005_RAD_RRTM4PBL</code>.
-          The long name encodes the compile-time scheme selections.
+          Open <code>Makefile</code> and locate the block for your platform. The key
+          variables to set are the MPI Fortran compiler and the path to your NetCDF
+          installation (read from the <code>$NETCDF</code> environment variable by default):
+        </p>
+
+        <pre><code># Makefile — compiler and NetCDF settings (Linux/Intel example)
+FF90 = mpif90 -c -r8          # MPI Fortran compiler
+NCPATH = ${NETCDF}            # set NETCDF in your environment</code></pre>
+
+        <h3>2. Configure the Build script</h3>
+
+        <p>
+          Open the <code>Build</code> csh script and set <code>HOSTNAME</code> to match
+          your system. This selects the correct compiler flags from the Makefile.
+          You can also change the physics modules here; the defaults are recommended
+          for gSAM–Chem:
+        </p>
+
+        <pre><code># Build — key settings
+setenv HOSTNAME  your-cluster-name
+setenv ADV_DIR   ADV_MPDATA
+setenv SGS_DIR   SGS_TKE
+setenv RAD_DIR   RAD_RRTM
+setenv MICRO_DIR MICRO_M2005
+setenv CHEM_MECH CLOUDCHEM
+setenv HET_CHEM  HET_CHEM</code></pre>
+
+        <h3>3. Compile</h3>
+
+        <p>Run the Build script from the repository root:</p>
+
+        <pre><code>./Build</code></pre>
+
+        <p>
+          A successful build produces the executable <code>gSAM</code> in the
+          repository root. Object files are placed in <code>OBJ/</code>.
         </p>
 
         <div class="note warning">
           <strong>Common issue:</strong> If the build fails with NetCDF linking errors,
-          double-check that <code>nc-config --flibs</code> and <code>nc-config --prefix</code>
-          match the paths in your Makefile. You may need to set
-          <code>LD_LIBRARY_PATH</code> if your NetCDF is installed in a non-standard location.
+          make sure the <code>NETCDF</code> environment variable points to your NetCDF
+          installation prefix, or set <code>NCPATH</code> directly in the Makefile.
+          You may also need to set <code>LD_LIBRARY_PATH</code> if NetCDF is in a
+          non-standard location.
         </div>
 
         <!-- ---- RUN 2D ---- -->
         <h2 id="run-2d">Running a 2D Simulation</h2>
 
         <p>
-          The GoAmazon 2D wet season case is the fastest way to test a working
-          gSAM–Chem installation. The domain is 256 columns × 256 vertical levels
-          with no third dimension, so a 1-day test runs in roughly 15–30 minutes
-          on 16 cores.
+          The GoAmazon deep convection case is the reference configuration for
+          gSAM–Chem. A 2D run (single horizontal column, 256 vertical levels) is
+          the fastest way to test a working installation — a 1-day test runs in
+          roughly 15–30 minutes on 16 cores.
         </p>
 
-        <h3>1. Copy and inspect the case directory</h3>
+        <h3>1. Set the active case</h3>
 
-        <pre><code>cp -r CASES/GoAmazon_2D_WetSeason CASES/my_2D_test
-cd CASES/my_2D_test
-ls</code></pre>
+        <p>
+          gSAM–Chem reads the case name from the <code>CaseName</code> file in the
+          repository root. It should already contain the GoAmazon case:
+        </p>
+
+        <pre><code>cat CaseName
+# goAMAZON_deep_convection</code></pre>
+
+        <p>
+          To use a different case, copy an existing case directory into
+          <code>CASES/</code> and update <code>CaseName</code> accordingly.
+        </p>
 
         <p>Key files in a case directory:</p>
 
@@ -163,75 +217,91 @@ ls</code></pre>
             <tr><th>File</th><th>Purpose</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>prm</code></td><td>Run-control namelist (domain size, time step, physics switches)</td></tr>
-            <tr><td><code>lsf.txt</code></td><td>Large-scale forcing (3-hourly, 25 mb resolution)</td></tr>
-            <tr><td><code>snd.txt</code></td><td>Initial sounding (T, q, u, v profiles)</td></tr>
-            <tr><td><code>chemistry.nml</code></td><td>Chemistry namelist (soil moisture, emission tuning, deposition switches)</td></tr>
-            <tr><td><code>run.sh</code></td><td>Submission script for your job scheduler</td></tr>
+            <tr><td><code>CaseName</code></td><td>Must match the directory name; used by gSAM to locate the case</td></tr>
+            <tr><td><code>prm</code></td><td>Run-control namelist: dynamics, physics switches, and the <code>&amp;CHEMISTRY</code> block</td></tr>
+            <tr><td><code>grd</code></td><td>Vertical grid levels (heights in meters)</td></tr>
+            <tr><td><code>lsf</code></td><td>Large-scale forcing (3-hourly, 25 mb resolution)</td></tr>
+            <tr><td><code>snd</code></td><td>Initial sounding (T, q, u, v profiles)</td></tr>
+            <tr><td><code>sfc</code></td><td>Surface boundary conditions</td></tr>
           </tbody>
         </table>
 
         <h3>2. Configure the run</h3>
 
         <p>
-          Open <code>prm</code> and confirm the key namelist parameters:
+          Open <code>CASES/goAMAZON_deep_convection/prm</code> and confirm the key
+          namelist parameters. For a 2D test, set <code>ny = 1</code>:
         </p>
 
         <pre><code>&PARAMETERS
-  nx = 256, ny = 1, nz = 256,
-  dx = 66.6, dy = 66.6,
-  nstop = 86400,          ! stop after 1 day (seconds)
-  noutput = 3600,         ! write output every hour
+  dx = 66.66666, dy = 66.66666,
+  nstop  = 86400,    ! stop after 1 day (seconds)
+  nstat  = 300,      ! statistics output interval (seconds)
+  nsave2D = 7200,    ! 2D output interval (seconds)
+  nsave3D = 7200,    ! 3D output interval (seconds)
+  dochem = .true.,
   ...
-&END</code></pre>
+/</code></pre>
 
         <p>
-          Open <code>chemistry.nml</code> and check the soil moisture initial value
-          and emission flags are set for the wet season:
+          Chemistry switches and parameters are set in the <code>&amp;CHEMISTRY</code>
+          block in the same <code>prm</code> file:
         </p>
 
         <pre><code>&CHEMISTRY
-  do_chemistry   = .true.,
-  do_lightning   = .true.,
-  do_soil_nox    = .true.,
-  do_isoprene    = .true.,
-  do_dry_dep     = .true.,
-  do_wet_dep     = .true.,
-  soil_moisture  = 0.86,   ! MERRA-2 wet season value
-&END</code></pre>
+  do_dry_deposition        = .true.
+  do_convective_scavenging = .true.
+  do_rainout               = .true.
+  do_washout               = .true.
+  do_megan_isoprene        = .true.
+  do_bdsnp_no              = .true.
+  do_CTG_lightning         = .true.
+  do_IC_lightning          = .true.
+  soil_wetness             = 0.86,   ! MERRA-2 wet season value
+  ...
+/</code></pre>
 
         <h3>3. Submit the job</h3>
 
-        <p>Edit <code>run.sh</code> for your cluster's scheduler, then submit:</p>
+        <p>
+          The repository includes <code>gsam.run</code> at the root — a SLURM
+          submission script that launches <code>gSAM</code> on 256 cores across
+          8 nodes. Edit it for your cluster and then submit:
+        </p>
 
-        <pre><code># SLURM example
-sbatch run.sh
+        <pre><code># Edit partition and node count for your cluster
+nano gsam.run
 
-# PBS/Torque example
-qsub run.sh</code></pre>
+# SLURM
+sbatch gsam.run
+
+# PBS/Torque
+qsub gsam.run</code></pre>
 
         <p>
-          The <code>run.sh</code> examples in each case directory target 16 cores (1 node).
-          Adjust <code>#SBATCH --ntasks</code> and <code>mpirun -np</code> together.
+          For a quick 2D test, reduce <code>--ntasks</code> and <code>mpirun -np</code>
+          to 16–32 cores; a 2D domain scales well at much lower core counts.
         </p>
 
         <!-- ---- RUN 3D ---- -->
         <h2 id="run-3d">Running a 3D Simulation</h2>
 
         <p>
-          The 3D wet season case adds the second horizontal dimension
-          (128 × 128 × 256), enabling resolved convective cells and three-dimensional
-          transport. Budget roughly 1.5 days wall-time per simulation day on 256 cores.
+          A 3D simulation adds the second horizontal dimension, enabling resolved
+          convective cells and three-dimensional transport. Budget roughly 1.5 days
+          wall-time per simulation day on 256 cores (8 nodes).
         </p>
-
-        <pre><code>cp -r CASES/GoAmazon_3D_WetSeason CASES/my_3D_test
-cd CASES/my_3D_test</code></pre>
 
         <p>
-          The <code>prm</code> file in this case sets <code>nx = 128, ny = 128</code>.
-          Everything else is identical to the 2D case. The <code>run.sh</code> example
-          requests 256 MPI tasks across 8 nodes (32 cores per node).
+          To switch from 2D to 3D, increase <code>ny</code> from 1 to your target
+          horizontal extent in <code>prm</code> and scale up the core count in
+          <code>gsam.run</code> accordingly:
         </p>
+
+        <pre><code># gsam.run — 3D configuration
+#SBATCH --ntasks=256
+#SBATCH --nodes=8
+mpirun -np 256 gSAM | tee sam.log</code></pre>
 
         <div class="note">
           <strong>Tip:</strong> Run a short 2D test (1–3 days) first to verify your
@@ -278,9 +348,9 @@ cd CASES/my_3D_test</code></pre>
 
         <p>Output frequencies are controlled in <code>prm</code>:</p>
 
-        <pre><code>noutput  = 3600    ! 3D output interval (seconds)
-nstat    = 600     ! statistics interval (seconds)
-ncheckpoint = 86400 ! restart write interval (seconds)</code></pre>
+        <pre><code>nsave3D  = 7200    ! 3D output interval (seconds)
+nsave2D  = 7200    ! 2D output interval (seconds)
+nstat    = 300     ! statistics interval (seconds)</code></pre>
 
         <!-- ---- ANALYSIS ---- -->
         <h2 id="analysis">Basic Analysis</h2>
@@ -294,7 +364,7 @@ ncheckpoint = 86400 ! restart write interval (seconds)</code></pre>
 import numpy as np
 import matplotlib.pyplot as plt
 
-ds = nc.Dataset('GoAmazon_2D_WetSeason_STATS.ncstat')
+ds = nc.Dataset('goAMAZON_deep_convection_STATS.ncstat')
 t  = ds.variables['time'][:]        # hours
 z  = ds.variables['z'][:]           # km
 ISOP = ds.variables['ISOP'][:]      # ppb, (time, z)
@@ -321,25 +391,25 @@ plt.savefig('isoprene_profile.png', dpi=150)</code></pre>
         <ul>
           <li>
             <strong>Swap the chemistry mechanism</strong> — compile any KPP-compatible
-            <code>.kpp</code> file with KPP 3.3.0, place the output in
-            <code>CHEMISTRY/&lt;YourMechanism&gt;/</code>, and recompile. See
-            <code>CHEMISTRY/README.md</code> for instructions.
+            <code>.kpp</code> file with KPP 3.3.0, place the generated Fortran in
+            <code>SRC/CHEMISTRY/&lt;YourMechanism&gt;/</code>, set
+            <code>CHEM_MECH</code> in the <code>Build</code> script, and recompile.
           </li>
           <li>
-            <strong>Change the large-scale forcing</strong> — replace <code>lsf.txt</code>
-            and <code>snd.txt</code> with ARM-format forcing files for a different
-            campaign. SAM's standard tools for constructing these files work
+            <strong>Change the large-scale forcing</strong> — replace <code>lsf</code>
+            and <code>snd</code> with ARM-format forcing files for a different
+            campaign. gSAM's standard tools for constructing these files work
             unchanged in gSAM–Chem.
           </li>
           <li>
             <strong>Extend emissions</strong> — additional surface emission fluxes
-            can be added as new tracers via the <code>SURF_FLUX</code> interface
-            in <code>SRC/chemistry_surface.f90</code>.
+            can be added via the emissions module in
+            <code>SRC/CHEMISTRY/emissions.f90</code>.
           </li>
           <li>
             <strong>Compare with GEOS–Chem</strong> — scripts for regridding
             GEOS–Chem Classic output to gSAM–Chem domain coordinates are included
-            in <code>SCRIPTS/geos-chem-comparison/</code>.
+            in <code>SCRIPTS/</code>.
           </li>
         </ul>
 
@@ -367,5 +437,23 @@ plt.savefig('isoprene_profile.png', dpi=150)</code></pre>
   </div>
 </footer>
 
+<script>
+(function () {
+  var btn = document.querySelector('.hamburger');
+  var nav = document.querySelector('.nav-links');
+  btn.addEventListener('click', function () {
+    var isOpen = nav.classList.toggle('open');
+    btn.classList.toggle('open');
+    btn.setAttribute('aria-expanded', isOpen);
+  });
+  nav.querySelectorAll('a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      nav.classList.remove('open');
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+  });
+})();
+</script>
 </body>
 </html>

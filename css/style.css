@@ -1,5 +1,5 @@
 /* ============================================================
-   SAM-Chem website — shared stylesheet
+   gSAM-Chem website — shared stylesheet
    Edit the :root variables to change the color scheme.
    ============================================================ */
 
@@ -588,6 +588,32 @@ footer a { color: rgba(255,255,255,0.85); }
 footer a:hover { color: #fff; }
 
 /* ============================================================
+   HAMBURGER BUTTON (hidden on desktop)
+   ============================================================ */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 6px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.15s ease;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 800px) {
@@ -595,9 +621,59 @@ footer a:hover { color: #fff; }
   .content-sidebar { display: none; }
 }
 
+@media (max-width: 768px) {
+  /* Show hamburger, collapse inline nav into a dropdown */
+  .hamburger { display: flex; }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 58px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--primary);
+    padding: 0.5rem 0 0.75rem;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    z-index: 199;
+    gap: 0;
+  }
+  .nav-links.open { display: flex; }
+
+  .nav-links li { width: 100%; }
+  .nav-links a {
+    padding: 0.7rem 1.5rem;
+    border-radius: 0;
+    font-size: 0.95rem;
+  }
+  .btn-github {
+    display: block;
+    margin: 0.5rem 1.5rem 0 !important;
+    border-radius: 5px !important;
+    text-align: center;
+  }
+}
+
 @media (max-width: 640px) {
+  .hero { padding: 3.5rem 0 3rem; }
   .hero h1 { font-size: 2.3rem; }
-  .nav-links li:not(:last-child):not(:nth-last-child(2)) { display: none; }
   .specs-grid { grid-template-columns: repeat(2, 1fr); }
   .team-grid  { grid-template-columns: repeat(2, 1fr); }
+
+  /* Scrollable tables on narrow screens */
+  .content-main table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .content-main td,
+  .content-main th {
+    min-width: 100px;
+  }
+
+  /* Slightly smaller code blocks */
+  .content-main pre {
+    font-size: 0.78rem;
+    padding: 1rem;
+  }
 }
